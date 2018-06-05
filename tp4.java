@@ -51,7 +51,7 @@ class Probe implements Runnable {
 		//@ invariant pre();
 		{
 			int v = r.nextInt(max - min + 1) + min;
-			System.out.println("Probe: " + Integer.toString(v));
+			System.out.println("Sensor " + sensor.getName() + "'s probe: " + Integer.toString(v));
 			sensor.setValue(v);
 			try {
 				TimeUnit.SECONDS.sleep(READ_RATE);
@@ -64,8 +64,9 @@ class Probe implements Runnable {
 
 /*@
 predicate_ctor Sensor_shared_state(SensorImpl s, int min, int max) () =
-	s.value |-> ?v &*&
-	min <= v &*& v <= max;
+	s.value |-> ?v 
+	&*& min <= v 
+	&*& v <= max;
 
 predicate Sensor_frac(real r) = true;
 @*/
@@ -100,13 +101,13 @@ public class SensorImpl implements Sensor {
 	
 	/*@
 	predicate SensorInv() =
-		this.mon |-> ?l &*&
-		this.name |-> ?n &*&
-		this.min |-> ?mi &*& 
-		this.max |-> ?ma &*&
-    		l != null &*& 
-		lck(l, 1, Sensor_shared_state(this, mi, ma)) &*&
-		mi <= ma;
+		this.mon |-> ?l 
+		&*& this.name |-> ?n 
+		&*& this.min |-> ?mi 
+		&*& this.max |-> ?ma 
+		&*& l != null 
+		&*& lck(l, 1, Sensor_shared_state(this, mi, ma)) 
+		&*& mi <= ma;
 	@*/
 	
 	private final String name;
@@ -182,7 +183,6 @@ public class SensorImpl implements Sensor {
 		mon.unlock();
       		//@ close [f]SensorInv();
 	}
-	
 }
 
 /*@
@@ -309,6 +309,14 @@ class ActuatorImpl implements Actuator {
 	
 }
 
+/*@ 
+predicate_ctor Log_shared_state(Logger l) () =
+	l.messages |-> ?m 
+	&*& m != null;
+
+predicate Log_frac(real r) = true;
+@*/
+
 interface Log {
 	
 	//@ predicate LogInv();
@@ -330,20 +338,26 @@ public final class Logger {
 
 	/*@
 	predicate LogInv() =
-		this.messages |-> ?m
-		&*& m != null;
+		this.mon |-> ?l
+		&*& l != null
+		&*& lck(l, 1, Log_shared_state(this));
 	@*/
 
 	private static final int INIT_SIZE = 32;
 	public static final Logger log;
 	
+	private ReentrantLock mon;
 	private String[] messages;
+	//ReentrantReadWriteLock
 	
 	private Logger()
 	//@ requires emp;
 	//@ ensures LogInv();
 	{ 
 	 	messages = new String[INIT_SIZE];
+	 	//@ close Log_shared_state(this)();
+		//@ close enter_lck(1, Log_shared_state(this));
+	 	mon = new ReentrantLock();
         	//@ close LogInv();
 	}
 
@@ -438,11 +452,14 @@ public final class IndoorLighting extends AbstractRule {
     	    	&*& this.actuators |-> ?a
 	    	&*& array_slice_deep(s, 0, s.length, SensorP, unit, _, _) 
     	    	&*& array_slice_deep(a, 0, a.length, ActuatorP, unit, _, _);
+    	
+    	predicate pre() =
+    		RuleInv()
+    		&*& [_]TimeUnit_SECONDS(?ts) 
+    		&*& ts != null;
+    		
+    	predicate post() = true;
 	@*/
-
-	//@ predicate pre() = RuleInv() &*& [_]TimeUnit_SECONDS(?s) &*& s != null;
-	//@ predicate post() = RuleInv() &*& [_]TimeUnit_SECONDS(?s) &*& s != null;
-
 
 	private static final real LOW = 0.10;
 	private static final real MEDIUM = 0.50;
@@ -454,9 +471,12 @@ public final class IndoorLighting extends AbstractRule {
 	public IndoorLighting(Sensor[] sensors, Actuator[] actuators) 
 	/*@ requires array_slice_deep(sensors, 0, sensors.length, SensorP, unit, _, _) 
 		&*& array_slice_deep(actuators, 0, actuators.length, ActuatorP, unit, _, _)
-		&*& [_]TimeUnit_SECONDS(?s) &*& s != null;
+		&*& [_]TimeUnit_SECONDS(?s) 
+		&*& s != null
+		&*& Logger_log(?l)
+		&*& l == null ? true : l.LogInv();
 	@*/
-	//@ ensures pre();
+	//@ ensures pre() &*& Logger_log(l) &*& l == null ? true : l.LogInv();
 	{
 		this.sensors = sensors;
 		this.actuators = actuators;
@@ -511,7 +531,7 @@ public final class IndoorLighting extends AbstractRule {
 			//@ array_slice_deep_open(as, i);
 			//@ open ActuatorP(unit, as[i], _);
 			Actuator a = actuators[i];
-			//Logger.log.write(a.getName() + " @ BLIMPS #" + Integer.toString(i) + " ON");
+			//Logger.get().write(a.getName() + " @ ACTUATOR #" + Integer.toString(i) + " ON");
 			//@ close ActuatorP(unit, as[i], _);
 			//@ array_slice_deep_close(as, i, ActuatorP, unit);
 			//@ array_slice_deep_join(as, 0);
@@ -530,10 +550,14 @@ public final class RainProtecting extends AbstractRule {
     	    	&*& this.actuators |-> ?a
 	    	&*& array_slice_deep(s, 0, s.length, SensorP, unit, _, _) 
     	    	&*& array_slice_deep(a, 0, a.length, ActuatorP, unit, _, _);
+    	
+    	predicate pre() =
+    		RuleInv()
+    		&*& [_]TimeUnit_SECONDS(?ts) 
+    		&*& ts != null;
+    		
+    	predicate post() = true;
 	@*/
-
-	//@ predicate pre() = RuleInv() &*& [_]TimeUnit_SECONDS(?s) &*& s != null;
-	//@ predicate post() = RuleInv() &*& [_]TimeUnit_SECONDS(?s) &*& s != null;
 
 	Sensor[] sensors;
 	Actuator[] actuators;
@@ -542,9 +566,11 @@ public final class RainProtecting extends AbstractRule {
 	/*@ requires array_slice_deep(sensors, 0, sensors.length, SensorP, unit, _, _) 
 		&*& array_slice_deep(actuators, 0, actuators.length, ActuatorP, unit, _, _)
 		&*& [_]TimeUnit_SECONDS(?s) 
-		&*& s != null;
+		&*& s != null
+		&*& Logger_log(?l)
+		&*& l == null ? true : l.LogInv();
 	@*/
-	//@ ensures pre();
+	//@ ensures pre() &*& Logger_log(l) &*& l == null ? true : l.LogInv();
 	{
 		this.sensors = sensors;
 		this.actuators = actuators;
@@ -577,22 +603,13 @@ public final class RainProtecting extends AbstractRule {
 		//@ invariant sensors |-> ?ss &*& array_slice_deep(ss, i, ss.length, SensorP, unit, _, _);
 		{
 			//@ array_slice_deep_split(ss, i, i+1);
-			//@ assert array_slice_deep(ss, i, i+1, SensorP, unit, _, _);
-			//@ assert array_slice_deep(ss, i+1, ss.length, SensorP, unit, _, _);
-			
 			//@ array_slice_deep_open(ss, i);
-			//@ assert array_slice(ss, i, i+1, _);
-			///@ assert SensorP(unit, sensors[i], _);
-	
-			//@ open SensorP(unit, sensors[i], _);
-			//@ assert sensors[i] != null;
-			///@ assert sensors[i].SensorInv();
-			
+			//@ open SensorP(unit, ss[i], _);
 			Sensor s = sensors[i];
 			int v = s.getValue();
 			sum += v;
 		}
-		int avg = sensors.length > 0 ? sum / sensors.length : 0;
+		int avg = sensors.length > 0 ? sum/sensors.length : 0;
 		
 		return avg;
 	}
@@ -601,6 +618,7 @@ public final class RainProtecting extends AbstractRule {
 	//@ requires RuleInv();
 	//@ ensures RuleInv();
 	{
+		//@ open RuleInv();
 		for (int i = 0; i < actuators.length; i++)
 		/*@ invariant actuators |-> ?as 
 			&*& array_slice_deep(as, 0, as.length, ActuatorP, unit, _, _) 
@@ -613,7 +631,7 @@ public final class RainProtecting extends AbstractRule {
 			//@ array_slice_deep_open(as, i);
 			//@ open ActuatorP(unit, as[i], _);
 			Actuator a = actuators[i];
-			//Logger.log.write(a.getName() + " @ BLIMPS #" + Integer.toString(i) + " ON");
+			//Logger.get().write(a.getName() + " @ ACTUATOR #" + Integer.toString(i) + " ON");
 			//@ close ActuatorP(unit, as[i], _);
 			//@ array_slice_deep_close(as, i, ActuatorP, unit);
 			//@ array_slice_deep_join(as, 0);
@@ -666,9 +684,9 @@ class DomoticSystem {
 			//@ array_slice_deep_close(lamps, i, ActuatorP, unit);
 			//@ array_slice_deep_join(lamps, 0);
 		}
-	
+		
 		new Thread(new IndoorLighting(lightSensors, lamps)).start();
-
+		
 		String[] rainSensorsNames = { "At front", "At back", "On roof" };
 		Sensor[] rainSensors = new Sensor[3];
  		//@ close Sensor_frac(1/3);
