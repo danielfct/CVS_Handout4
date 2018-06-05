@@ -21,7 +21,7 @@ class Probe implements Runnable {
 	predicate post() = 
 		ProbeInv();
 	@*/ 
-	
+	private static final int READ_RATE = 2;
 	private Sensor sensor;
 	
 	public Probe(Sensor sensor) 
@@ -50,12 +50,11 @@ class Probe implements Runnable {
 		while (true) 
 		//@ invariant pre();
 		{
-			// produce a new value every 2 seconds
-			int v = r.nextInt(max - min + 1) + min;  // random between (inclusive) min and max
+			int v = r.nextInt(max - min + 1) + min;
 			System.out.println("Probe: " + Integer.toString(v));
 			sensor.setValue(v);
 			try {
-				TimeUnit.SECONDS.sleep(2);
+				TimeUnit.SECONDS.sleep(READ_RATE);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -336,12 +335,11 @@ public final class Logger {
 	@*/
 
 	private static final int INIT_SIZE = 32;
-	
 	public static final Logger log;
 	
 	private String[] messages;
 	
-	public Logger()
+	private Logger()
 	//@ requires emp;
 	//@ ensures LogInv();
 	{ 
@@ -350,7 +348,7 @@ public final class Logger {
 	}
 
 	
-	public static Logger getLog()
+	public static Logger get()
 	//@ requires Logger_log(?l) &*& (l == null ? true : l.LogInv());
 	//@ ensures Logger_log(result) &*& result.LogInv(); 
 	{
@@ -630,15 +628,15 @@ class DomoticSystem {
 	private static final int REFRESH_RATE = 5;
 
 	public static void main(String[] args) throws InterruptedException //@ ensures true;
-	/*@ requires [_]System_out(?o) 
-		&*& o != null 
+	/*@ requires [_]System_out(?so) 
+		&*& so != null 
 		&*& [_]TimeUnit_SECONDS(?ts) 
 		&*& ts != null
-		&*& Logger_log(?l);
+		&*& Logger_log(?lg) 
+		&*& lg == null;
 	@*/
 	//@ ensures true;
 	{
-
 		String[] lightSensorsNames = {"Outside", "Livingroom", "Bedroom", "Kitchen", "Bathroom"};
 		Sensor[] lightSensors = new Sensor[5];
  		//@ close Sensor_frac(1/5);
@@ -670,9 +668,7 @@ class DomoticSystem {
 		}
 	
 		new Thread(new IndoorLighting(lightSensors, lamps)).start();
-		1;
-		
-		
+
 		String[] rainSensorsNames = { "At front", "At back", "On roof" };
 		Sensor[] rainSensors = new Sensor[3];
  		//@ close Sensor_frac(1/3);
@@ -691,9 +687,9 @@ class DomoticSystem {
 		Actuator[] windows = new Actuator[3];
  		//@ close Actuator_frac(1/3);
 		for (int i = 0; i < windows.length; i++)
-		/*@ invariant array_slice_deep(windows, 0, i, ActuatorP, unit, _, _) &*& 
-			array_slice(windows, i, windows.length, _) &*&
-			array_slice(windowNames, i, windowNames.length, _)
+		/*@ invariant array_slice_deep(windows, 0, i, ActuatorP, unit, _, _) 
+			&*& array_slice(windows, i, windows.length, _) 
+			&*& array_slice(windowNames, i, windowNames.length, _)
 			&*& Actuator_frac(?f);
 		@*/
  		{
@@ -706,18 +702,19 @@ class DomoticSystem {
 		
 		int last = 0;
 		while (true) 
-		/*@ invariant [_]System_out(o) 
-			&*& o != null 
+		/*@ invariant [_]System_out(so) 
+			&*& so != null 
 			&*& [_]TimeUnit_SECONDS(ts) 
 			&*& ts != null
-			&*& Logger_log(?log);
+			&*& Logger_log(?l)
+			&*& l == null ? true : l.LogInv();
 		@*/
 		{
-			String[] messages = Logger.getLog().read(last);
+			String[] messages = Logger.get().read(last);
 			last += messages.length;
 			for (int i = 0; i < messages.length; i++) 
-			/*@ invariant [_]System_out(o) 
-				&*& o != null 
+			/*@ invariant [_]System_out(so)
+				&*& so != null 
 				&*& array_slice(messages, i, messages.length, _);
 			@*/			
 			{
