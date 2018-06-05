@@ -1,0 +1,25 @@
+package sensors;
+
+interface Sensor {
+
+ 	String getName();
+	//@ requires [?f]SensorInv(?s);
+	//@ ensures [f]SensorInv(s);
+
+	int getMin();
+	//@ requires [?f]SensorInv(?s);
+	//@ ensures [f]SensorInv(s);
+
+	int getMax();
+	//@ requires [?f]SensorInv(?s);
+	//@ ensures [f]SensorInv(s);
+
+	int getValue();
+	//@ requires [?f]SensorInv(?s);
+	//@ ensures [f]SensorInv(s);
+
+	void setValue(int value);
+	//@ requires [?f]SensorInv(?s);
+	//@ ensures [f]SensorInv(s);
+	
+}

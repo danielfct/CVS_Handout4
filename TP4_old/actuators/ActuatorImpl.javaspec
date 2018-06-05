@@ -1,0 +1,29 @@
+package actuators;
+
+class ActuatorImpl implements Actuator {
+
+	ActuatorImpl(String name, int min, int max);
+	//@ requires min <= max;
+	//@ ensures Actuator(this.getClass())(this);
+	
+	public String getName();
+	//@ requires Actuator(this.getClass())(this);
+	//@ ensures Actuator(this.getClass())(this);
+	
+	public int getMin();
+	//@ requires Actuator(this.getClass())(this);
+	//@ ensures Actuator(this.getClass())(this);
+	
+	public int getMax();
+	//@ requires Actuator(this.getClass())(this);
+	//@ ensures Actuator(this.getClass())(this);
+	
+	public int getValue();
+	//@ requires Actuator(this.getClass())(this);
+	//@ ensures Actuator(this.getClass())(this);
+
+	public void setValue(int value);
+	//@ requires ActuatorInv(this.getClass())(this);
+	//@ ensures ActuatorInv(this.getClass())(this);
+	
+}

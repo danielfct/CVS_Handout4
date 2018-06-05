@@ -1,0 +1,23 @@
+package rules;
+
+import sensors.*;
+import actuators.*;
+
+
+//@ predicate_family_instance Rule(AbstractRule.class)(AbstractRule r) = true;
+
+abstract class AbstractRule implements Rule {
+	
+	public void run();
+	//@ requires pre();
+	//@ ensures post();
+	
+	public abstract int readSensors();
+	//@ requires Rule(this.getClass())(this);
+	//@ ensures Rule(this.getClass())(this);
+	
+	public abstract void setActuators(int value);
+	//@ requires Rule(this.getClass())(this);
+	//@ ensures Rule(this.getClass())(this);
+
+}

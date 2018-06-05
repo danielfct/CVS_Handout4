@@ -1,0 +1,25 @@
+package log;
+
+import java.io.*;
+import java.util.*;
+
+
+public class Logger implements Log {
+
+	private Logger();
+    //@ requires emp;
+    //@ ensures Log(this.getClass())(this);
+
+	public void write(String message);
+    //@ requires Log(this.getClass())(this);
+    //@ ensures Log(this.getClass())(this);
+
+	public String[] read(int fromIndex);
+	//@ requires Log(this.getClass())(this);
+    //@ ensures Log(this.getClass())(this) &*& result != null;
+
+	public int size();
+	//@ requires Log(this.getClass())(this);
+    //@ ensures Log(this.getClass())(this) &*& result > 0;
+
+}

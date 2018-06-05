@@ -1,0 +1,21 @@
+package rules;
+
+import sensors.*;
+import actuators.*;
+
+
+//@ predicate_family Rule(Class s)(Rule r);
+
+interface Rule extends Runnable {
+
+	
+	
+	int readSensors();
+	//@ requires Rule(this.getClass())(this);
+	//@ ensures Rule(this.getClass())(this);
+	
+	void setActuators(int value);
+	//@ requires Rule(this.getClass())(this);
+	//@ ensures Rule(this.getClass())(this);
+	
+}

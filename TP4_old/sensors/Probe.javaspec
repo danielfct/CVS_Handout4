@@ -1,0 +1,18 @@
+package sensors;
+
+
+class Probe implements Runnable {
+
+	public Probe(Sensor sensor);
+	/*@ requires sensor != null 
+		&*& Sensor_frac(?f) 
+		&*& [f]SensorInv(sensor) 
+		&*& [_]System_out(?o) &*& o != null &*& [_]TimeUnit_SECONDS(?ts) &*& ts != null;
+	@*/
+	//@ ensures pre();
+	
+	public void run();
+	//@ requires pre();
+	//@ ensures post();
+
+}

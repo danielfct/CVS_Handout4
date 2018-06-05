@@ -1,0 +1,29 @@
+package rules;
+
+import sensors.*;
+import actuators.*;
+import log.*;
+
+public class IndoorLighting extends AbstractRule {
+
+	
+	public IndoorLighting(Sensor[] sensors, Actuator[] actuators); 
+	/*@ requires array_slice_deep(sensors, 0, sensors.length, SensorP, unit, _, _) 
+		&*& array_slice_deep(actuators, 0, actuators.length, ActuatorP, unit, _, _);
+	@*/
+	//@ ensures pre();
+	
+	public void run();
+	//@ requires pre();
+	//@ ensures post();
+		
+	public int readSensors(); 
+	//@ requires Rule(this.getClass())(this);
+	//@ ensures Rule(this.getClass())(this);
+	
+
+	public void setActuators(int value);
+	//@ requires Rule(this.getClass())(this);
+	//@ ensures Rule(this.getClass())(this);
+		
+}

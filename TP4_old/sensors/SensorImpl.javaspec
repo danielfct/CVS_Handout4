@@ -1,0 +1,31 @@
+package sensors;
+
+
+class SensorImpl implements Sensor {
+
+
+	Sensor(String name, int min, int max);
+	//@ requires min <= max;
+	//@ ensures SensorInv(this);
+
+	public String getName();
+	//@ requires [?f]SensorInv(this);
+	//@ ensures [f]SensorInv(this);
+	
+	public int getMin();
+	//@ requires [?f]SensorInv(this);
+	//@ ensures [f]SensorInv(this);
+	
+	public int getMax();
+	//@ requires [?f]SensorInv(this);
+	//@ ensures [f]SensorInv(this);
+	
+	public int getValue(); 
+	//@ requires [?f]SensorInv(this);
+	//@ ensures [f]SensorInv(this);
+
+	public void setValue(int value); 
+	//@ requires [?f]SensorInv(this);
+	//@ ensures [f]SensorInv(this);
+	
+}

@@ -1,0 +1,5 @@
+test/Sensor.java
+test/LightSensor.java
+test/AbstractRule.java
+test/IndoorLighting.java
+test/Actuator.java
