@@ -322,16 +322,16 @@ interface Log {
 	//@ predicate LogInv();
 
 	void write(String message);
-	//@ requires LogInv();
-	//@ ensures LogInv();
+	//@ requires [?f]LogInv();
+	//@ ensures [f]LogInv();
 
 	String[] read(int fromIndex);
-	//@ requires LogInv();
-	//@ ensures LogInv();
+	//@ requires [?f]LogInv();
+	//@ ensures [f]LogInv();
 
 	int size();
-	//@ requires LogInv();
-	//@ ensures LogInv();
+	//@ requires [?f]LogInv();
+	//@ ensures [f]LogInv();
 }
  	
 public final class Logger {
